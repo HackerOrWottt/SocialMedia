@@ -3,6 +3,7 @@ import { createContext, useReducer } from "react";
 export const PostList = createContext({
   postList: [],
   addPost: () => {},
+  addInitialPosts: () => {},
   deletePost: () => {},
 });
 
@@ -14,10 +15,12 @@ const postListReducer = (currPostList, action) => {
     newPostList = currPostList.filter(
       (post) => post.id !== action.payload.postID
     ); //if not equal then put in new list otherwise dont put
-  }
-  else if(action.type === "ADD_POST"){
+  } else if (action.type === "ADD_POST") {
     //add one post
-    newPostList = [action.payload , ...currPostList]; //spreading curr array and adding one more post
+    newPostList = [action.payload, ...currPostList]; //spreading curr array and adding one more post
+  }
+  else if (action.type === "ADD_INITIAL_POSTS") {
+    newPostList = action.payload.posts;
   }
 
   return newPostList;
@@ -25,10 +28,7 @@ const postListReducer = (currPostList, action) => {
 
 const PostListProvider = ({ children }) => {
   //using useReduce hook , for post list state
-  const [postList, dispatchPostList] = useReducer(
-    postListReducer,
-    Default_post_list
-  );
+  const [postList, dispatchPostList] = useReducer(postListReducer, []);
 
   const addPost = (id, title, body, react, tag) => {
     dispatchPostList({
@@ -40,6 +40,15 @@ const PostListProvider = ({ children }) => {
         noOfReactions: react,
         userID: id,
         tags: tag,
+      },
+    });
+  };
+
+  const addInitialPosts = (posts) => {
+    dispatchPostList({
+      type: "ADD_INITIAL_POSTS",
+      payload: {
+        posts: posts,
       },
     });
   };
@@ -59,30 +68,12 @@ const PostListProvider = ({ children }) => {
         postList: postList,
         addPost: addPost,
         deletePost: deletePost,
+        addInitialPosts: addInitialPosts,
       }}
     >
       {children}
     </PostList.Provider>
   );
 };
-
-const Default_post_list = [
-  {
-    id: 1,
-    title: "Going on Vacation",
-    body: "Hi Friends , I am going to Singapore for my Vacations . Stay Tuned..",
-    noOfReactions: 0,
-    userID: "user-420",
-    tags: ["Vactaions", "Singapore", "Enjoying"],
-  },
-  {
-    id: 2,
-    title: "Watching Saiyaraa",
-    body: "Hi Friends , I am going to watch Saiyaraa. Exicted a lot..",
-    noOfReactions: 4,
-    userID: "user-421",
-    tags: ["Chilling", "Saiyaraa"],
-  },
-];
 
 export default PostListProvider;
