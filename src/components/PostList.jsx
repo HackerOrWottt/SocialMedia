@@ -2,25 +2,30 @@ import React, { useContext, useEffect, useState } from "react";
 import { PostList as PostListData } from "../store/Post-list-store";
 import Post from "./Post";
 import FetchData from "./FetchData";
+import LoadingSpinner from "./LoadingSpinner";
 
 function PostList() {
   const { postList , addInitialPosts } = useContext(PostListData);
-  const [fetched , setFetched] = useState(false);
+  const [fetching , setFetching] = useState(false);
 
-  if(!fetched){
+  useEffect(() => {
+    setFetching(true); //fetch the data
+
     fetch("https://dummyjson.com/post")
     .then((res) => (res.json()))
     .then((data) => {
       addInitialPosts(data.posts);
-    });
 
-    setFetched(true);
-  }
+      setFetching(false); //fetched data so mark it as false
+    });
+  } , [])
+
   
   return (
     <>
-      {postList.length === 0 && <FetchData />}
-      {postList.map((post) => (
+      {fetching && <LoadingSpinner />}
+      {!fetching && postList.length === 0 && <FetchData />}
+      {!fetching && postList.map((post) => (
         <Post key={post.id} post={post}/>
       ))}
     </>
