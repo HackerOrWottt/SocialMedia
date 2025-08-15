@@ -1,9 +1,11 @@
 import React, { useContext, useRef } from "react";
 import styles from "./CreatePost.module.css";
-import { PostList as PostListData} from "../store/Post-list-store";
+import { PostList as PostListData } from "../store/Post-list-store";
+import { useNavigate } from "react-router-dom";
 
 function CreatePost() {
-  const {addPost} = useContext(PostListData)
+  const { addPost } = useContext(PostListData);
+  const navigate = useNavigate();
 
   const userID = useRef();
   const postTitle = useRef();
@@ -15,21 +17,37 @@ function CreatePost() {
     event.preventDefault();
 
     //take out the values from useRef hooks
-    const id = userID.current.value;
+    const userId = userID.current.value;
     const title = postTitle.current.value;
     const body = postBody.current.value;
     const react = reactions.current.value;
-    const tag = tags.current.value.split(' '); //to split the strings into an array
+    const tag = tags.current.value.split(" "); //to split the strings into an array
 
-    //now empty all the fiels 
+    //now empty all the fiels
     userID.current.value = "";
     postTitle.current.value = "";
     postBody.current.value = "";
     reactions.current.value = "";
     tags.current.value = "";
 
-    addPost(id , title , body , react , tag);
-  }
+    //fetching API to add posts
+    fetch("https://dummyjson.com/posts/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: title,
+        userId: userId,
+        body: body,
+        noOfReactions: react,
+        tags: tag,
+      }),
+    })
+      .then((res) => res.json())
+      .then((resObj) => {
+        addPost(resObj);
+        navigate("/");
+      });
+  };
 
   return (
     <form className={`${styles.form}`} onSubmit={handleSubmit}>
@@ -39,7 +57,7 @@ function CreatePost() {
         </label>
         <input
           type="text"
-          ref = {userID}
+          ref={userID}
           class="form-control"
           id="userID"
           placeholder="Enter your ID"
@@ -52,7 +70,7 @@ function CreatePost() {
         </label>
         <input
           type="text"
-          ref= {postTitle}
+          ref={postTitle}
           class="form-control"
           id="title"
           placeholder="How are you feeling today..."
@@ -63,9 +81,10 @@ function CreatePost() {
         <label for="body" class="form-label">
           Post Content
         </label>
-        <textarea rows="4"
+        <textarea
+          rows="4"
           type="text"
-          ref = {postBody}
+          ref={postBody}
           class="form-control"
           id="body"
           placeholder="Tell us more about it."
@@ -78,7 +97,7 @@ function CreatePost() {
         </label>
         <input
           type="text"
-          ref = {reactions}
+          ref={reactions}
           class="form-control"
           id="reactions"
           placeholder="How many peoples reacted on it."
@@ -87,11 +106,11 @@ function CreatePost() {
 
       <div class="mb-3">
         <label for="tags" class="form-label">
-          Enter your Hashtags here 
+          Enter your Hashtags here
         </label>
         <input
           type="text"
-          ref = {tags}
+          ref={tags}
           class="form-control"
           id="tags"
           placeholder="Please enter Tags using Space."

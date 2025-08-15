@@ -1,9 +1,9 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer, useState, useEffect } from "react";
 
 export const PostList = createContext({
   postList: [],
   addPost: () => {},
-  addInitialPosts: () => {},
+  fetching : false,
   deletePost: () => {},
 });
 
@@ -18,8 +18,7 @@ const postListReducer = (currPostList, action) => {
   } else if (action.type === "ADD_POST") {
     //add one post
     newPostList = [action.payload, ...currPostList]; //spreading curr array and adding one more post
-  }
-  else if (action.type === "ADD_INITIAL_POSTS") {
+  } else if (action.type === "ADD_INITIAL_POSTS") {
     newPostList = action.payload.posts;
   }
 
@@ -29,18 +28,12 @@ const postListReducer = (currPostList, action) => {
 const PostListProvider = ({ children }) => {
   //using useReduce hook , for post list state
   const [postList, dispatchPostList] = useReducer(postListReducer, []);
+  const [fetching , setFetching] = useState(false);
 
-  const addPost = (id, title, body, react, tag) => {
+  const addPost = (post) => {
     dispatchPostList({
       type: "ADD_POST",
-      payload: {
-        id: Date.now(),
-        title: title,
-        body: body,
-        noOfReactions: react,
-        userID: id,
-        tags: tag,
-      },
+      payload: post,
     });
   };
 
@@ -62,13 +55,34 @@ const PostListProvider = ({ children }) => {
     });
   };
 
+  useEffect(() => {
+    setFetching(true); //fetch the data
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    fetch("https://dummyjson.com/post" , {signal})
+    .then((res) => (res.json()))
+    .then((data) => {
+      addInitialPosts(data.posts);
+
+      setFetching(false); //fetched data so mark it as false
+    });
+
+    return () => {
+      //use effect clean up code
+      controller.abort();
+    }
+  } , [])
+
+
   return (
     <PostList.Provider
       value={{
         postList: postList,
         addPost: addPost,
         deletePost: deletePost,
-        addInitialPosts: addInitialPosts,
+        fetching : fetching
       }}
     >
       {children}

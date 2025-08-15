@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import styles from "./Post.module.css";
 import { MdDelete } from "react-icons/md";
 import { PostList as PostListData } from "../store/Post-list-store";
